@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 
     'shop',
+    'taggit',
 ]
 
 SITE_ID = 1
