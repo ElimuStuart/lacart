@@ -26,29 +26,27 @@
           <div class="p-4">
 
             <div class="mb-3">
-              <a href="">
-                <span class="badge purple mr-1">Category 2</span>
+            {% for tag in item.tags.all %}
+              <a href="{% url 'shop:item_list_by_category' tag.slug %}">
+                <span class="badge purple mr-1">{{ tag.name }}</span>
               </a>
-              <a href="">
-                <span class="badge blue mr-1">New</span>
-              </a>
-              <a href="">
-                <span class="badge red mr-1">Bestseller</span>
-              </a>
+            {% endfor %}
             </div>
 
             <p class="lead">
+              {% if item.discount_price %}
               <span class="mr-1">
-                <del>$200</del>
+                <del>${{ item.price }}</del>
               </span>
-              <span>$100</span>
+              <span>${{ item.discount_price }}</span>
+              {% else %}
+              <span>${{ item.price }}</span>
+              {% endif %}
             </p>
 
             <p class="lead font-weight-bold">Description</p>
 
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Et dolor suscipit libero eos atque quia ipsa
-              sint voluptatibus!
-              Beatae sit assumenda asperiores iure at maxime atque repellendus maiores quia sapiente.</p>
+            <p>{{ item.description }}</p>
 
             <form class="d-flex justify-content-left">
               <!-- Default input -->
@@ -90,30 +88,21 @@
 
       <!--Grid row-->
       <div class="row wow fadeIn">
-
+        {% for similar_item in similar_items %}
         <!--Grid column-->
         <div class="col-lg-4 col-md-12 mb-4">
 
-          <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/11.jpg" class="img-fluid" alt="">
+          <a href="{{ item.get_absolute_url }}">
+            <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/11.jpg" class="img-fluid" alt="">
+          </a>
 
         </div>
+        {% empty %}
+        No similar item
         <!--Grid column-->
+        {% endfor %}
 
-        <!--Grid column-->
-        <div class="col-lg-4 col-md-6 mb-4">
-
-          <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/12.jpg" class="img-fluid" alt="">
-
-        </div>
-        <!--Grid column-->
-
-        <!--Grid column-->
-        <div class="col-lg-4 col-md-6 mb-4">
-
-          <img src="https://mdbootstrap.com/img/Photos/Horizontal/E-commerce/Products/13.jpg" class="img-fluid" alt="">
-
-        </div>
-        <!--Grid column-->
+        
 
       </div>
       <!--Grid row-->

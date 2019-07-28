@@ -1,6 +1,7 @@
 from django.conf import settings
 from taggit.managers import TaggableManager
 from django.db import models
+from django.urls import reverse
 
 # Create your models here.
 LABEL_CHOICES = (
@@ -13,16 +14,25 @@ LABEL_CHOICES = (
 class Item(models.Model):
     title = models.CharField(max_length=100)
     price = models.FloatField()
+    discount_price = models.FloatField(blank=True, null=True)
     tags = TaggableManager() # categories
     label = models.CharField(choices=LABEL_CHOICES, max_length=1)
+    slug = models.SlugField(max_length=250)
+    description = models.TextField()
 
 
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return reverse('shop:product', args=[
+            self.slug
+        ])
+
 
 class OrderItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
 
     def __str__(self):
         return self.title
