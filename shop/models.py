@@ -29,13 +29,24 @@ class Item(models.Model):
             self.slug
         ])
 
+    def get_add_to_cart_url(self):
+        return reverse('shop:add-to-cart', args=[
+            self.slug
+        ])
+
+    def get_remove_from_cart_url(self):
+        return reverse('shop:remove-from-cart', args=[
+            self.slug
+        ])
 
 class OrderItem(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    ordered = models.BooleanField(default=False)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
 
     def __str__(self):
-        return self.title
+        return f"{self.quantity} of {self.item}"
 
 
 class Order(models.Model):
