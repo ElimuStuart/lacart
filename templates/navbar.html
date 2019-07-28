@@ -18,7 +18,7 @@
 
         <!-- Left -->
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
+          {% comment %} <li class="nav-item active">
             <a class="nav-link waves-effect" href="/">Home
               <span class="sr-only">(current)</span>
             </a>
@@ -28,12 +28,22 @@
           </li>
           <li class="nav-item">
             <a class="nav-link waves-effect" href="/product">Product</a>
-          </li>
+          </li> {% endcomment %}
           
         </ul>
 
         <!-- Right -->
         <ul class="navbar-nav nav-flex-icons">
+          {% if request.user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{ request.user.username }}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="{% url 'account_logout' %}">Logout</a>
+              {% comment %} <div class="dropdown-divider"></div> {% endcomment %}
+            </div>
+          </li>
           <li class="nav-item">
             <a class="nav-link waves-effect">
               <span class="badge red z-depth-1 mr-1"> 1 </span>
@@ -41,6 +51,14 @@
               <span class="clearfix d-none d-sm-inline-block"> Cart </span>
             </a>
           </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link waves-effect" href="{% url 'account_login' %}">
+              <i class="fas fa-user"></i>
+              <span class="mr-1"> Login </span>
+            </a>
+          </li>
+          {% endif %}
           <li class="nav-item">
             <a href="https://www.facebook.com/mdbootstrap" class="nav-link waves-effect" target="_blank">
               <i class="fab fa-facebook-f"></i>
