@@ -1,6 +1,10 @@
 from django.utils import timezone
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.views.generic import DetailView, View
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
 from taggit.models import Tag
@@ -31,6 +35,19 @@ def index(request, tag_slug=None):
     }
     return render(request, "home-page.html", context)
 
+class OrderSummaryView(LoginRequiredMixin, View):
+    def get(self, *args, **kwargs):
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            context = {
+                'object': order,
+            }
+            return render(self.request, 'order_summary.html', context)
+        except ObjectDoesNotExist:
+            messages.error(self.request, "Your cart is empty")
+            return redirect("/")
+
+@login_required
 def product(request, slug):
     item = get_object_or_404(Item, slug=slug)
     item_tags_ids = item.tags.values_list('id', flat=True)
@@ -43,6 +60,7 @@ def product(request, slug):
     }
     return render(request, "product-page.html", context)
 
+@login_required
 def add_to_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
     order_item, created = OrderItem.objects.get_or_create(
@@ -71,6 +89,7 @@ def add_to_cart(request, slug):
         messages.info(request, "Item was added to cart successfully")
         return redirect("shop:product", slug=slug)  
 
+@login_required
 def remove_from_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
     order_qs = Order.objects.filter(user=request.user, ordered=False)
@@ -85,13 +104,54 @@ def remove_from_cart(request, slug):
             )
             order.items.remove(order_item)
             messages.info(request, "Item was removed from your cart")
-            return redirect("shop:product", slug=slug)
+            return redirect("shop:order_summary")
+
+    else:
+    #    user doesnt have order
+        return redirect("shop:product", slug=slug)
+
+@login_required
+def remove_single_item_from_cart(request, slug):
+    item = get_object_or_404(Item, slug=slug)
+    order_qs = Order.objects.filter(user=request.user, ordered=False)
+    if order_qs.exists():
+        order = order_qs[0]
+        # check if the orderitem is in the order
+        if order.items.filter(item__slug=item.slug).exists():
+            order_item, created = OrderItem.objects.get_or_create(
+                item=item,
+                user=request.user,
+                ordered=False
+            )
+            if order_item.quantity > 1:
+                order_item.quantity -= 1
+                order_item.save()
+            else: 
+                order.items.remove(order_item)
+            messages.info(request, "Item quantity was updated")
+            return redirect("shop:order_summary")
 
     else:
     #    user doesnt have order
         return redirect("shop:product", slug=slug)
     
-
+@login_required
+def add_single_item_to_cart(request, slug):
+    item = get_object_or_404(Item, slug=slug)
+    order_item, created = OrderItem.objects.get_or_create(
+        item=item,
+        user=request.user,
+        ordered=False
+    )
+    order_qs = Order.objects.filter(user=request.user, ordered=False)
+    if order_qs.exists():
+        order = order_qs[0]
+        # check if the orderitem is in the order
+        if order.items.filter(item__slug=item.slug).exists():
+            order_item.quantity += 1
+            order_item.save()
+            messages.info(request, "Item was updated to cart successfully")
+            return redirect("shop:order_summary")  
 
 def checkout(request):
     

@@ -46,7 +46,7 @@ INSTALLED_APPS = [
 
     'shop',
     'taggit',
-    'crispy_forms'
+    'crispy_forms',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
