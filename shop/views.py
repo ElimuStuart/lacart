@@ -190,3 +190,6 @@ class CheckoutView(View):
             return redirect("shop:order_summary")
 
         
+class PaymentView(View):
+    def get(self, *args, **kwargs):
+        return render(self.request, "payment.html")
