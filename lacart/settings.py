@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'shop',
     'taggit',
     'crispy_forms',
+    'django_countries',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

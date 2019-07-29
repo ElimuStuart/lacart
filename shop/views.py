@@ -9,6 +9,7 @@ from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
 from taggit.models import Tag
 from .models import Item, OrderItem, Order
+from .forms import CheckoutForm
 
 # Create your views here.
 def index(request, tag_slug=None):
@@ -153,6 +154,14 @@ def add_single_item_to_cart(request, slug):
             messages.info(request, "Item was updated to cart successfully")
             return redirect("shop:order_summary")  
 
-def checkout(request):
-    
-    return render(request, "checkout-page.html")
+class CheckoutView(View):
+    def get(self, *args, **kwargs):
+        form = CheckoutForm()
+        context = {'form': form}
+        return render(self.request, "checkout-page.html", context)
+
+    def post(self, *args, **kwargs):
+        form = CheckoutForm(self.request.POST or None)
+        if form.is_valid():
+            return redirect("shop:checkout")
+        
