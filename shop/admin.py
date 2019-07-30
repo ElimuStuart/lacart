@@ -6,6 +6,10 @@ from .models import Item, Order, OrderItem
 class ItemAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
 
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['user', 'ordered']
+
 admin.site.register(OrderItem)
-admin.site.register(Order)
+# admin.site.register(Order)
 

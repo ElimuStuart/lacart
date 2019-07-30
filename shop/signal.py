@@ -10,12 +10,13 @@ def payment_notification(sender, **kwargs):
     if ipn.payment_status == 'Completed':
         # successful payment
         order = get_object_or_404(Order, id=ipn.item_name.split()[1])
-        print(order.get_total())
-        print(ipn.mc_gross)
         if order.get_total() == ipn.mc_gross:
             # mark the order as paid
-            print(True)
+            order_items = order.items.all()
+            order_items.update(ordered=True)
+            for item in order_items:
+                item.save()
+                
             order.ordered = True
-            print(order.save())
             order.save()
         print(False)
