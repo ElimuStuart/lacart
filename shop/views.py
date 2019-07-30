@@ -12,8 +12,8 @@ from django.shortcuts import render, get_object_or_404, redirect, reverse
 from taggit.models import Tag
 from decimal import Decimal
 from paypal.standard.forms import PayPalPaymentsForm
-from .models import Item, OrderItem, Order, BillingAddress
-from .forms import CheckoutForm
+from .models import Item, OrderItem, Order, BillingAddress, Coupon
+from .forms import CheckoutForm, CouponForm
 
 import random
 import string
@@ -168,9 +168,19 @@ def add_single_item_to_cart(request, slug):
 
 class CheckoutView(View):
     def get(self, *args, **kwargs):
-        form = CheckoutForm()
-        context = {'form': form}
-        return render(self.request, "checkout-page.html", context)
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            form = CheckoutForm()
+            context = {
+                'form': form,
+                'couponform': CouponForm(),
+                'order': order
+            }
+            return render(self.request, "checkout-page.html", context)
+        except ObjectDoesNotExist:
+            messages.error(self.request, "Order does not exist")
+            return redirect("shop:checkout")
+        
 
     def post(self, *args, **kwargs):
         form = CheckoutForm(self.request.POST or None)
@@ -215,27 +225,30 @@ def process_payment(request, payment_option):
     # order = get_object_or_404(Order, id=order_id)
     order = Order.objects.get(user=request.user, ordered=False)
     host = request.get_host()
+    if order.billing_address:
+        paypal_dict = {
+            'business': settings.PAYPAL_RECEIVER_EMAIL,
+            'amount': order.get_total(),
+            'item_name': 'Order {}'.format(order.id),
+            'invoice': generateInvoice(),
+            'currency_code': 'USD',
+            'notify_url': 'http://{}{}'.format(host,
+                                            reverse('paypal-ipn')),
+            'return_url': 'http://{}{}'.format(host,
+                                            reverse('shop:payment_done')),
+            'cancel_return': 'http://{}{}'.format(host,
+                                                reverse('shop:payment_cancelled')),
+        }
 
-    paypal_dict = {
-        'business': settings.PAYPAL_RECEIVER_EMAIL,
-        'amount': order.get_total(),
-        'item_name': 'Order {}'.format(order.id),
-        'invoice': generateInvoice(),
-        'currency_code': 'USD',
-        'notify_url': 'http://{}{}'.format(host,
-                                        reverse('paypal-ipn')),
-        'return_url': 'http://{}{}'.format(host,
-                                        reverse('shop:payment_done')),
-        'cancel_return': 'http://{}{}'.format(host,
-                                            reverse('shop:payment_cancelled')),
-    }
-
-    form = PayPalPaymentsForm(initial=paypal_dict)
-    context = {
-        'form': form,
-        'order': order
-    }
-    return render(request, "payment.html", context)
+        form = PayPalPaymentsForm(initial=paypal_dict)
+        context = {
+            'form': form,
+            'order': order
+        }
+        return render(request, "payment.html", context)
+    else:
+        messages.error(request, "Please complete the checkout form")
+        return redirect("shop:checkout")
 
 @csrf_exempt
 def payment_done(request):
@@ -249,4 +262,28 @@ def payment_canceled(request):
     # return render(request, 'ecommerce_app/payment_cancelled.html')
     messages.error(request, "Your payment was not successful")
     return redirect("shop:order_summary")
+
+def get_coupon(reqest, code):
+    try:
+        coupon = Coupon.objects.get(code=code)
+        return coupon
+    except ObjectDoesNotExist:
+        messages.error(request, "This coupon does not exist")
+        return redirect("shop:checkout")
+
+class AddCouponView(View):
+    def post(self, *args, **kwargs):
+        if request.method == 'POST':
+            form = CouponForm(self.request.POST or None)
+            if form.is_valid():
+                try:
+                    code = form.cleaned_data.get('code')
+                    order = Order.objects.get(user=self.request.user, ordered=False)
+                    order.coupon = get_coupon(self.request, code)
+                    order.save()
+                    messages.success(self.request, "Coupon added successfully")
+                    return redirect("shop:checkout")
+                except ObjectDoesNotExist:
+                    messages.error(self.request, "Order does not exist")
+                    return redirect("shop:checkout")
 

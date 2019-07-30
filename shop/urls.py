@@ -9,6 +9,7 @@ from .views import (
     process_payment,
     payment_done,
     payment_canceled,
+    AddCouponView,
 )
 
 app_name = 'shop'
@@ -27,5 +28,7 @@ urlpatterns = [
     path('payment/<payment_option>/', process_payment, name="payment"),
     path('payment_done/', payment_done, name="payment_done"),
     path('payment_cancelled/', payment_canceled, name="payment_cancelled"),
+    path('add_coupon/', AddCouponView.as_view(), name="add_coupon"),
+
 
 ]
