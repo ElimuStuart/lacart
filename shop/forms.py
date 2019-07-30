@@ -8,15 +8,31 @@ PAYMENT_CHOICES = (
 )
 
 class CheckoutForm(forms.Form):
-    street_address = forms.CharField()
-    apartment_address = forms.CharField(required=False)
-    country = CountryField(blank_label='(select country)').formfield(widget=CountrySelectWidget(
+    shipping_address = forms.CharField(required=False)
+    shipping_address2 = forms.CharField(required=False)
+    shipping_country = CountryField(blank_label='(select country)').formfield(
+        required=False,
+        widget=CountrySelectWidget(
         attrs={
         'class': 'custom-select d-block w-100'
     }))
-    zip = forms.CharField()
+    shipping_zip = forms.CharField(required=False)
     same_shipping_address = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
-    save_info = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
+    set_default_shipping = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
+    use_default_shipping = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
+
+    billing_address = forms.CharField(required=False)
+    billing_address2 = forms.CharField(required=False)
+    billing_country = CountryField(blank_label='(select country)').formfield(
+        required=False,
+        widget=CountrySelectWidget(
+        attrs={
+        'class': 'custom-select d-block w-100'
+    }))
+    billing_zip = forms.CharField(required=False)
+    set_default_billing = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
+    use_default_billing = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
+
     payment_option = forms.ChoiceField(widget=forms.RadioSelect, choices=PAYMENT_CHOICES)
 
 
