@@ -25,3 +25,11 @@ class CouponForm(forms.Form):
         'class':'form-control',
         'placeholder':'Promo code'
     }))
+
+
+class RefundForm(forms.Form):
+    email = forms.EmailField()
+    ref_code = forms.CharField()
+    message = forms.CharField(widget=forms.Textarea(attrs={
+        'rows': 4
+    }))

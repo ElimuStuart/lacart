@@ -12,15 +12,15 @@ from django.shortcuts import render, get_object_or_404, redirect, reverse
 from taggit.models import Tag
 from decimal import Decimal
 from paypal.standard.forms import PayPalPaymentsForm
-from .models import Item, OrderItem, Order, BillingAddress, Coupon
-from .forms import CheckoutForm, CouponForm
+from .models import Item, OrderItem, Order, BillingAddress, Coupon, Refund
+from .forms import CheckoutForm, CouponForm, RefundForm
 
 import random
 import string
 
-def generateInvoice(stringLength=6):
+def generateRef(stringLength=6):
     """Generate a random string of letters and digits """
-    lettersAndDigits = string.ascii_letters + string.digits
+    lettersAndDigits = string.ascii_uppercase + string.digits
     return ''.join(random.choice(lettersAndDigits) for i in range(stringLength))
 
 # Create your views here.
@@ -203,8 +203,9 @@ class CheckoutView(View):
                 )
                 billing_address.save()
                 order.billing_address = billing_address
+                order.ref_code = generateRef(20)
                 order.save()
-                # request.session['order_id'] = o.id
+                self.request.session['ref_code'] = order.ref_code
                 # return redirect('process_payment')
                 if payment_option == 'P':
                     return redirect("shop:payment", payment_option='paypal')
@@ -230,7 +231,7 @@ def process_payment(request, payment_option):
             'business': settings.PAYPAL_RECEIVER_EMAIL,
             'amount': order.get_total(),
             'item_name': 'Order {}'.format(order.id),
-            'invoice': generateInvoice(),
+            'invoice': order.ref_code,
             'currency_code': 'USD',
             'notify_url': 'http://{}{}'.format(host,
                                             reverse('paypal-ipn')),
@@ -273,7 +274,7 @@ def get_coupon(reqest, code):
 
 class AddCouponView(View):
     def post(self, *args, **kwargs):
-        if request.method == 'POST':
+        if self.request.method == 'POST':
             form = CouponForm(self.request.POST or None)
             if form.is_valid():
                 try:
@@ -287,3 +288,35 @@ class AddCouponView(View):
                     messages.error(self.request, "Order does not exist")
                     return redirect("shop:checkout")
 
+
+class RequestRefundView(View):
+    def post(self, *args, **kwargs):
+        form = RefundForm(self.request.POST or None)
+        if form.is_valid():
+            ref_code = form.cleaned_data.get('ref_code')
+            message = form.cleaned_data.get('message')
+            email = form.cleaned_data.get('email')
+
+            # edit order
+            try:
+                order = Order.objects.get(ref_code=ref_code)
+                order.refund_requested= True
+                order.save()
+
+                # save refund model
+                refund = Refund()
+                refund.order = order
+                refund.reason = message
+                refund.email = email
+                messages.success(self.request, "Your request was received. We will get back to you shortly.")
+                return redirect("/")
+            except ObjectDoesNotExist:
+                    messages.error(self.request, "Order does not exist")
+                    return redirect("shop:request-refund")
+    def get(self, *args, **kwargs):
+        form = RefundForm()
+        context = {
+            'form': form
+        }
+        return render(self.request, "request-refund.html", context)
+        
