@@ -1,15 +1,27 @@
+from django.conf import settings
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views.generic import DetailView, View
 from django.db.models import Count
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, reverse
 from taggit.models import Tag
+from decimal import Decimal
+from paypal.standard.forms import PayPalPaymentsForm
 from .models import Item, OrderItem, Order, BillingAddress
 from .forms import CheckoutForm
+
+import random
+import string
+
+def generateInvoice(stringLength=6):
+    """Generate a random string of letters and digits """
+    lettersAndDigits = string.ascii_letters + string.digits
+    return ''.join(random.choice(lettersAndDigits) for i in range(stringLength))
 
 # Create your views here.
 def index(request, tag_slug=None):
@@ -182,14 +194,59 @@ class CheckoutView(View):
                 billing_address.save()
                 order.billing_address = billing_address
                 order.save()
-                return redirect("shop:checkout")
-            messages.error(self.request, "Failed Checkout")
-            return redirect("shop:checkout")
+                # request.session['order_id'] = o.id
+                # return redirect('process_payment')
+                if payment_option == 'P':
+                    return redirect("shop:payment", payment_option='paypal')
+                elif payment_option == 'M':
+                    # return redirect("shop:payment", payment_option='momopay')
+                    pass
+                else:
+                    messages.error(self.request, "Invalid option selected")
+                    return redirect("shop:checkout")
         except ObjectDoesNotExist:
             messages.error(self.request, "Your cart is empty")
             return redirect("shop:order_summary")
 
         
-class PaymentView(View):
-    def get(self, *args, **kwargs):
-        return render(self.request, "payment.html")
+
+def process_payment(request, payment_option):
+    # order_id = request.session.get('order_id')
+    # order = get_object_or_404(Order, id=order_id)
+    order = Order.objects.get(user=request.user, ordered=False)
+    host = request.get_host()
+
+    paypal_dict = {
+        'business': settings.PAYPAL_RECEIVER_EMAIL,
+        'amount': order.get_total(),
+        'item_name': 'Order {}'.format(order.id),
+        'invoice': generateInvoice(),
+        'currency_code': 'USD',
+        'notify_url': 'http://{}{}'.format(host,
+                                        reverse('paypal-ipn')),
+        'return_url': 'http://{}{}'.format(host,
+                                        reverse('shop:payment_done')),
+        'cancel_return': 'http://{}{}'.format(host,
+                                            reverse('shop:payment_cancelled')),
+    }
+
+    form = PayPalPaymentsForm(initial=paypal_dict)
+    context = {
+        'form': form,
+        'order': order
+    }
+    return render(request, "payment.html", context)
+
+@csrf_exempt
+def payment_done(request):
+    messages.info(request, "Your payment was successful")
+    return redirect("shop:order_summary")
+    # return render(request, 'payment_done.html')
+ 
+ 
+@csrf_exempt
+def payment_canceled(request):
+    # return render(request, 'ecommerce_app/payment_cancelled.html')
+    messages.error(request, "Your payment was not successful")
+    return redirect("shop:order_summary")
+
