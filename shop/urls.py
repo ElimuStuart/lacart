@@ -12,6 +12,7 @@ from .views import (
     AddCouponView,
     RequestRefundView,
     profile_summary,
+    search,
 )
 
 app_name = 'shop'
@@ -33,4 +34,5 @@ urlpatterns = [
     path('add_coupon/', AddCouponView.as_view(), name="add_coupon"),
     path('request-refund/', RequestRefundView.as_view(), name='request-refund'),
     path('profile/', profile_summary, name='profile_summary'),
+    path('search/', search, name='search'),
 ]

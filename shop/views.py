@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Count, Q
 from django.views.generic import DetailView, View
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect, reverse
@@ -22,6 +23,30 @@ def generateRef(stringLength=6):
     """Generate a random string of letters and digits """
     lettersAndDigits = string.ascii_uppercase + string.digits
     return ''.join(random.choice(lettersAndDigits) for i in range(stringLength))
+
+def search(request):
+    queryset = Item.objects.all()
+    query = request.GET.get('q')
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query)
+        ).distinct()
+
+    paginator = Paginator(queryset, 12)
+    page = request.GET.get('page')
+    try:
+        items = paginator.page(page)
+    except PageNotAnInteger:
+        items = paginator.page(1)
+    except EmptyPage:
+        items = paginator.page(paginator.num_pages)
+
+    context = {
+        'items': items,
+    }
+
+    return render(request, 'search_results.html', context)
 
 # Create your views here.
 def index(request, tag_slug=None):
