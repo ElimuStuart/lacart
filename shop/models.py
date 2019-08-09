@@ -7,9 +7,9 @@ from django_countries.fields import CountryField
 
 # Create your models here.
 LABEL_CHOICES = (
-    ('P', 'primary'),
-    ('S', 'secondary'),
-    ('D', 'danger')
+    ('P', 'NEW'),
+    ('S', 'SALE'),
+    ('D', 'DISCOUNT')
 )
 
 ADDRESS_CHOICES = (
