@@ -172,12 +172,10 @@
                 <span class="sr-only">(current)</span>
               </a>
             </li>
-            {% for item in items %}
-              {% for tag in item.tags.all %}
+            {% for category in cats %}
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'shop:item_list_by_category' tag.slug %}">{{ tag.name }}</a>
+                  <a class="nav-link" href="{% url 'shop:item_list_by_category' category.slug %}">{{ category }}</a>
                 </li>
-              {% endfor %}
             {% endfor %}
             
 

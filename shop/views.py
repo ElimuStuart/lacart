@@ -26,6 +26,7 @@ def generateRef(stringLength=6):
 # Create your views here.
 def index(request, tag_slug=None):
     item_list = Item.objects.all()
+    cats = Tag.objects.all()
     tag = None
 
     if tag_slug:
@@ -44,7 +45,8 @@ def index(request, tag_slug=None):
     context = {
         'items': items,
         'tag': tag,
-        'page': page
+        'page': page,
+        'cats': cats
     }
     return render(request, "home-page.html", context)
 
