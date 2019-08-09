@@ -11,6 +11,7 @@ from .views import (
     payment_canceled,
     AddCouponView,
     RequestRefundView,
+    profile_summary,
 )
 
 app_name = 'shop'
@@ -31,5 +32,5 @@ urlpatterns = [
     path('payment_cancelled/', payment_canceled, name="payment_cancelled"),
     path('add_coupon/', AddCouponView.as_view(), name="add_coupon"),
     path('request-refund/', RequestRefundView.as_view(), name='request-refund'),
-
+    path('profile/', profile_summary, name='profile_summary'),
 ]

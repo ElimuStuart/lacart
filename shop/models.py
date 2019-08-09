@@ -130,3 +130,18 @@ class Refund(models.Model):
 
     def __str__(self):
         return f"{self.pk}"
+
+
+# class Transaction(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     order_id = models.CharField(max_length=120)
+#     ref_code = models.CharField(max_length=20)
+#     amount = models.FloatField()
+#     success = models.BooleanField(default=True)
+#     timestamp = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+#     def __str__(self):
+#         return self.order_id
+
+#     class Meta:
+#         ordering = ['-timestamp']

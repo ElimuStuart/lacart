@@ -367,15 +367,23 @@ def process_payment(request, payment_option):
 @csrf_exempt
 def payment_done(request):
     messages.info(request, "Your payment was successful")
-    return redirect("shop:order_summary")
-    # return render(request, 'payment_done.html')
- 
- 
+    return redirect("shop:profile_summary")
+
+
 @csrf_exempt
 def payment_canceled(request):
     # return render(request, 'ecommerce_app/payment_cancelled.html')
     messages.error(request, "Your payment was not successful")
     return redirect("shop:order_summary")
+
+@csrf_exempt
+def profile_summary(request):
+    my_orders = Order.objects.get(user=request.user, ordered=True)
+    context = {
+        'my_orders': my_orders
+    }
+    return render(request, 'profile.html', context)
+    
 
 def get_coupon(reqest, code):
     try:
