@@ -20,7 +20,8 @@
 
     <!-- Cart -->
     <ul class="list-group mb-3 z-depth-1">
-      {% for order_item in my_orders.items.all %}
+    {% for my_order in my_orders %}
+      {% for order_item in my_order.items.all %}
       <li class="list-group-item d-flex justify-content-between lh-condensed">
         <div>
           <h6 class="my-0">{{ order_item.quantity }} x {{ order_item.item.title }}</h6>
@@ -30,7 +31,7 @@
         {% comment %} <span class="text-muted">{{ my_orders.0.ref_code }}</span> {% endcomment %}
       </li>
       {% endfor %}
-      
+      {% endfor %}
       <li class="list-group-item d-flex justify-content-between">
         {% comment %} <span>Total (USD)</span> {% endcomment %}
         {% comment %} <strong>${{ order.get_total }}</strong> {% endcomment %}

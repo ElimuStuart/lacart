@@ -405,7 +405,9 @@ def payment_canceled(request):
 
 @csrf_exempt
 def profile_summary(request):
-    my_orders = Order.objects.get(user=request.user, ordered=True)
+    my_orders = Order.objects.all().filter(user=request.user, ordered=True)
+    # orders = my_orders[0]
+
     context = {
         'my_orders': my_orders
     }
