@@ -8,7 +8,7 @@
 
   <!--Main layout-->
   <main>
-    <div class="container">
+    <div class="container mb-5 pb-5">
 
         {% comment %} <h3>Order Summary</h3> {% endcomment %}
 
@@ -27,6 +27,7 @@
           <small class="text-muted">{{ order_item.item.description }}</small>
         </div>
         <span class="text-muted">${{ order_item.get_final_price }}</span>
+        {% comment %} <span class="text-muted">{{ my_orders.0.ref_code }}</span> {% endcomment %}
       </li>
       {% endfor %}
       
@@ -36,6 +37,9 @@
       </li>
     </ul>
     <!-- Cart -->    
+
+    <a href="/request-refund" class="btn btn-primary float-right">REQUEST REFUND</a>
+    <a href="/" class="btn btn-primary float-right">CONTINUE SHOPPING</a>
       
 
       
