@@ -344,6 +344,7 @@ class CheckoutView(View):
 
                 payment_option = form.cleaned_data.get('payment_option')
                 order.ref_code = generateRef(20)
+                order.save()
                 
                 self.request.session['ref_code'] = order.ref_code
                 # return redirect('process_payment')
@@ -406,10 +407,18 @@ def payment_canceled(request):
 @csrf_exempt
 def profile_summary(request):
     my_orders = Order.objects.all().filter(user=request.user, ordered=True)
-    # orders = my_orders[0]
+    
+    paginator = Paginator(my_orders, 8)
+    page = request.GET.get('page')
+    try:
+        orders = paginator.page(page)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
 
     context = {
-        'my_orders': my_orders
+        'my_orders': orders
     }
     return render(request, 'profile.html', context)
     

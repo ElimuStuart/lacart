@@ -28,7 +28,7 @@
           <small class="text-muted">{{ order_item.item.description }}</small>
         </div>
         <span class="text-muted">${{ order_item.get_final_price }}</span>
-        {% comment %} <span class="text-muted">{{ my_orders.0.ref_code }}</span> {% endcomment %}
+        <span class="text-muted">{{ my_order.ref_code }}</span>
       </li>
       {% endfor %}
       {% endfor %}
@@ -41,6 +41,8 @@
 
     <a href="/request-refund" class="btn btn-primary float-right">REQUEST REFUND</a>
     <a href="/" class="btn btn-primary float-right">CONTINUE SHOPPING</a>
+
+    
       
 
       
