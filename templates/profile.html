@@ -31,6 +31,14 @@
         <span class="text-muted">{{ my_order.ref_code }}</span>
       </li>
       {% endfor %}
+      <li class="list-group-item d-flex justify-content-between lh-condensed">
+        <div>
+          <h6 class="my-0">You have not ordered any items yet.</h6>
+          <small class="text-muted">{{ order_item.item.description }}</small>
+        </div>
+      </li>
+      {% empty %}
+
       {% endfor %}
       <li class="list-group-item d-flex justify-content-between">
         {% comment %} <span>Total (USD)</span> {% endcomment %}
