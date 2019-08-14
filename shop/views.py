@@ -423,7 +423,7 @@ def profile_summary(request):
     return render(request, 'profile.html', context)
     
 
-def get_coupon(reqest, code):
+def get_coupon(request, code):
     try:
         coupon = Coupon.objects.get(code=code)
         return coupon
@@ -436,15 +436,16 @@ class AddCouponView(View):
         if self.request.method == 'POST':
             form = CouponForm(self.request.POST or None)
             if form.is_valid():
+                code = form.cleaned_data.get('code')
+                order = Order.objects.get(user=self.request.user, ordered=False)
                 try:
-                    code = form.cleaned_data.get('code')
-                    order = Order.objects.get(user=self.request.user, ordered=False)
-                    order.coupon = get_coupon(self.request, code)
+                    coupon = Coupon.objects.get(code=code)
+                    order.coupon = coupon
                     order.save()
                     messages.success(self.request, "Coupon added successfully")
                     return redirect("shop:checkout")
                 except ObjectDoesNotExist:
-                    messages.error(self.request, "Order does not exist")
+                    messages.warning(self.request, "Coupon does not exist")
                     return redirect("shop:checkout")
 
 
